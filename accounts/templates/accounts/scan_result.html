@@ -1,0 +1,67 @@
+{% extends 'accounts/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-{% if scan.scan_result == 'FAKE' %}danger{% else %}success{% endif %} text-white">
+            <h3>Scan Results for {{ scan.username }}</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Summary</h4>
+                    <div class="alert alert-{% if scan.scan_result == 'FAKE' %}danger{% else %}success{% endif %}">
+                        <strong>Result:</strong> {{ scan.get_scan_result_display }}<br>
+                        <strong>Confidence:</strong> {{ scan.confidence|floatformat:2 }}%<br>
+                        <strong>Algorithm Used:</strong> {{ scan.algorithm_used }}
+                    </div>
+                    
+                    {% if scan.profile_url %}
+                    <p><strong>Profile URL:</strong> <a href="{{ scan.profile_url }}" target="_blank">{{ scan.profile_url }}</a></p>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-6">
+                    <h4>Details</h4>
+                    {% if scan.risk_factors %}
+                    <div class="mb-3">
+                        <h5>Risk Factors:</h5>
+                        <ul class="list-group">
+                            {% for factor in scan.risk_factors.split %}
+                            <li class="list-group-item">{{ factor }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <h5>Profile Metrics:</h5>
+                        <ul class="list-group">
+                            <li class="list-group-item">Followers: {{ scan.followers_count }}</li>
+                            <li class="list-group-item">Following: {{ scan.following_count }}</li>
+                            <li class="list-group-item">Posts: {{ scan.posts_count }}</li>
+                            <li class="list-group-item">Private: {% if scan.is_private %}Yes{% else %}No{% endif %}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <a href="{% url 'scan_profile' %}" class="btn btn-primary">New Scan</a>
+                <a href="{% url 'scan_history' %}" class="btn btn-secondary">View History</a>
+                <a href="{% url 'generate_report' scan.id %}" class="btn btn-info">Generate Report</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% if social_scan_result %}
+<div class="card mt-4">
+    <div class="card-header bg-primary text-white">
+        <h5>Social Scanner API Result</h5>
+    </div>
+    <div class="card-body">
+        <pre>{{ social_scan_result|safe|json_script:"socialScanResult" }}</pre>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

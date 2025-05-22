@@ -1,0 +1,39 @@
+{% extends 'accounts/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4>Profile Scanner</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="scanForm">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg" id="analyzeBtn">
+                                <i class="fas fa-search"></i> Analyze Profile
+                            </button>
+                        </div>
+                    </form>
+                    <div class="text-center mt-4" id="scanSpinner" style="display:none;">
+                        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                            <span class="visually-hidden">Scanning...</span>
+                        </div>
+                        <div class="mt-2">Scanning profile, please wait...</div>
+                    </div>
+                    <script>
+                        document.getElementById('scanForm').addEventListener('submit', function() {
+                            document.getElementById('analyzeBtn').disabled = true;
+                            document.getElementById('scanSpinner').style.display = 'block';
+                        });
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

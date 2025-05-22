@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4><i class="fab fa-instagram"></i> Instagram Profile Scanner</h4>
+        </div>
+        <div class="card-body">
+            <form method="post" class="mb-4">
+                {% csrf_token %}
+                <div class="input-group">
+                    <span class="input-group-text">@</span>
+                    <input type="text" class="form-control" name="username" 
+                           placeholder="Enter Instagram username" required>
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search"></i> Analyze
+                    </button>
+                </div>
+            </form>
+            
+            {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+            
+            {% if result %}
+            <div class="mt-4">
+                <!-- Display scan results here -->
+                {{ result }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

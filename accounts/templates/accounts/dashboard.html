@@ -1,0 +1,282 @@
+{% extends 'accounts/base.html' %}
+
+{% block content %}
+<div class="container">
+    <!-- Cool Banner Start -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="p-4 mb-4 text-white rounded shadow" style="background: linear-gradient(90deg, #007cf0 0%, #00dfd8 100%); display: flex; align-items: center;">
+                <i class="fas fa-shield-alt fa-3x me-4" style="opacity:0.9;"></i>
+                <div>
+                    <h2 class="mb-1" style="font-weight: 700; letter-spacing: 1px;">Welcome, {{ user.get_full_name|default:user.username }}!</h2>
+                    <p class="mb-0" style="font-size: 1.2rem; opacity: 0.95;">AI-powered dashboard for detecting fake social media profiles</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Cool Banner End -->
+    <div class="row mt-4 g-4">
+        <!-- Main Actions -->
+        <div class="col-lg-8 order-2 order-lg-1">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white d-flex align-items-center justify-content-between">
+                    <h4 class="mb-0">Quick Actions</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-search fa-3x mb-3 text-info"></i>
+                                    <h5>Profile Scanner</h5>
+                                    <p>Check authenticity of any profile</p>
+                                    <a href="{% url 'scan_profile' %}" class="btn btn-primary">Scan Profile</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-shield-alt fa-3x mb-3 text-warning"></i>
+                                    <h5>Advanced Profile Scan</h5>
+                                    <p>Scan profile using API</p>
+                                    <a href="{% url 'profile_checker:index' %}" class="btn btn-warning">Scan with API</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-history fa-3x mb-3 text-success"></i>
+                                    <h5>Scan History</h5>
+                                    <p>View your previous scans</p>
+                                    <a href="{% url 'scan_history' %}" class="btn btn-success">View History</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Statistics Section -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Scan Statistics</h5>
+                </div>
+                <div class="row g-0 align-items-center">
+                    <div class="col-md-6 p-3">
+                        <ul class="list-group mb-3">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Total Scans
+                                <span class="badge bg-primary">{{ stats.total_scans }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Real Profiles
+                                <span class="badge bg-success">{{ stats.real_count }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Fake Profiles
+                                <span class="badge bg-danger">{{ stats.fake_count }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <canvas id="accountDistributionChart"></canvas>
+                    </div>
+                </div>
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script>
+                    const accountCtx = document.getElementById('accountDistributionChart').getContext('2d');
+                    new Chart(accountCtx, {
+                        type: 'pie',
+                        data: {{ account_data|safe }},
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { position: 'bottom' },
+                                title: { display: true, text: 'Recent Real vs Fake Accounts' }
+                            }
+                        }
+                    });
+                </script>
+            </div>
+        </div>
+        <!-- Sidebar: Recent Scans -->
+        <div class="col-lg-4 order-1 order-lg-2">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Recent Scans</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_scans %}
+                        <ul class="list-group">
+                            {% for scan in recent_scans %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ scan.username }}
+                                <span class="badge bg-{% if scan.scan_result == 'FAKE' %}danger{% else %}success{% endif %}">
+                                    {{ scan.get_scan_result_display }}
+                                </span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No scans yet. Scan your first profile!</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- FAQ Section Start -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0"><i class="fas fa-question-circle me-2"></i>Frequently Asked Questions (FAQ)</h4>
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq1">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1" aria-expanded="true" aria-controls="collapse1">
+                                    What is fake social media profile detection?
+                                </button>
+                            </h2>
+                            <div id="collapse1" class="accordion-collapse collapse show" aria-labelledby="faq1" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Fake social media profile detection uses AI algorithms to analyze and identify accounts that may not be genuine or are created for malicious purposes.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq2">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2" aria-expanded="false" aria-controls="collapse2">
+                                    Why is it important to detect fake social media profiles?
+                                </button>
+                            </h2>
+                            <div id="collapse2" class="accordion-collapse collapse" aria-labelledby="faq2" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Detecting fake profiles helps protect users from scams, misinformation, and privacy breaches, and maintains the integrity of online communities.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq3">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3" aria-expanded="false" aria-controls="collapse3">
+                                    How does fake social media profile detection work?
+                                </button>
+                            </h2>
+                            <div id="collapse3" class="accordion-collapse collapse" aria-labelledby="faq3" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    The system analyzes profile data, activity patterns, and other signals using machine learning models to determine the likelihood of a profile being fake.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq4">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4" aria-expanded="false" aria-controls="collapse4">
+                                    What are some common signs of a fake social media profile?
+                                </button>
+                            </h2>
+                            <div id="collapse4" class="accordion-collapse collapse" aria-labelledby="faq4" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Common signs include incomplete profiles, generic or stolen photos, suspicious activity, and inconsistent information.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq5">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse5" aria-expanded="false" aria-controls="collapse5">
+                                    Can fake social media profiles be permanently removed?
+                                </button>
+                            </h2>
+                            <div id="collapse5" class="accordion-collapse collapse" aria-labelledby="faq5" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    While detection tools can identify and report fake profiles, permanent removal depends on the policies and actions of the social media platform.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- FAQ Section End -->
+</div>
+{% endblock %}<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3 shadow">
+            <div class="card-body text-center">
+                <i class="fas fa-users fa-2x mb-2"></i>
+                <h5 class="card-title">Total Scans</h5>
+                <h2>{{ stats.total_scans }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3 shadow">
+            <div class="card-body text-center">
+                <i class="fas fa-user-check fa-2x mb-2"></i>
+                <h5 class="card-title">Real Accounts</h5>
+                <h2>{{ stats.real_count }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-danger mb-3 shadow">
+            <div class="card-body text-center">
+                <i class="fas fa-user-times fa-2x mb-2"></i>
+                <h5 class="card-title">Fake Accounts</h5>
+                <h2>{{ stats.fake_count }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3 shadow">
+            <div class="card-body text-center">
+                <i class="fas fa-percentage fa-2x mb-2"></i>
+                <h5 class="card-title">Detection Accuracy</h5>
+                <h2>{{ stats.detection_accuracy }}%</h2>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card mt-4">
+    <div class="card-header bg-primary text-white">
+        <h5>Check Instagram User Details (via Social Scanner API)</h5>
+    </div>
+    <div class="card-body">
+        <form id="social-scanner-form" class="mb-3">
+            <div class="input-group">
+                <input type="text" id="scanner-username" class="form-control" placeholder="Enter Instagram username" required>
+                <button type="submit" class="btn btn-primary">Check</button>
+            </div>
+        </form>
+        <div id="scanner-result"></div>
+    </div>
+</div>
+<script>
+document.getElementById('social-scanner-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const username = document.getElementById('scanner-username').value;
+    const resultDiv = document.getElementById('scanner-result');
+    resultDiv.innerHTML = 'Loading...';
+    fetch('/api/social-scanner/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({username: username, platform: 'instagram'})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            resultDiv.innerHTML = '<div class="alert alert-danger">' + data.error + '</div>';
+        } else {
+            resultDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        }
+    })
+    .catch(err => {
+        resultDiv.innerHTML = '<div class="alert alert-danger">Error fetching data.</div>';
+    });
+});
+</script>

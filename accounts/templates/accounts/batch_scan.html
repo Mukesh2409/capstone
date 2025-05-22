@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Batch Profile Scanner</h2>
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="{% url 'batch_scan' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="usernames">Enter Instagram Usernames (one per line)</label>
+                    <textarea class="form-control" id="usernames" name="usernames" rows="5" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">Scan Profiles</button>
+            </form>
+        </div>
+    </div>
+
+    {% if results %}
+    <div class="mt-4">
+        <h3>Scan Results</h3>
+        {% for result in results %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">@{{ result.username }}</h5>
+                {% if result.error %}
+                <div class="alert alert-danger">{{ result.error }}</div>
+                {% else %}
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="mb-2">Risk Score: <span class="badge {% if result.risk_score > 70 %}bg-danger{% elif result.risk_score > 40 %}bg-warning{% else %}bg-success{% endif %}">{{ result.risk_score }}%</span></p>
+                        <h6>Risk Indicators:</h6>
+                        <ul>
+                            {% for indicator in result.indicators %}
+                            <li>{{ indicator }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div>
+                        - <a href="{% url 'generate_report' result.scan_id %}" class="btn btn-outline-primary">Generate Report</a>
+                        + <!-- Removed Generate Report button -->
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

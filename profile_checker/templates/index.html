@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Profile Scanner</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --color-primary: #0095f6;
+            --color-danger: #ff4444;
+            --color-warning: #ffc107;
+            --color-success: #28a745;
+            --color-gray: #6c757d;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #0095f6 0%, #0064e0 100%);
+            color: white;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 100%;
+        }
+        
+        .header-title {
+            text-align: left;
+        }
+        
+        .header-buttons {
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            color: white;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .btn i {
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 600px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .header-title {
+                text-align: center;
+            }
+        }
+        
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .search-container {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        #usernameInput {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        
+        #usernameInput:focus {
+            border-color: var(--color-primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 149, 246, 0.2);
+        }
+        
+        button {
+            padding: 0.75rem 1.5rem;
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            background: #0081d6;
+            transform: translateY(-1px);
+        }
+        
+        #error {
+            padding: 0.75rem 1rem;
+            background: rgba(255, 68, 68, 0.1);
+            color: var(--color-danger);
+            border-radius: 8px;
+            margin: 0 1.5rem 1rem;
+            display: none;
+        }
+        
+        .profile {
+            padding: 1.5rem;
+        }
+        
+        .profile-pic {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin: 0 auto 1rem;
+            display: block;
+            object-fit: cover;
+        }
+        
+        .profile-name {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .profile-name h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #212529;
+        }
+        
+        .profile-name p {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stat-item {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #212529;
+            margin-bottom: 0.25rem;
+        }
+        
+        .bio {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        
+        .bio strong {
+            color: #495057;
+        }
+        
+        .final_output {
+            background: white;
+            padding: 1.5rem;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .final_output h3 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: #212529;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .final_output h3 i {
+            color: var(--color-primary);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1.5rem;
+        }
+        
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .score {
+            font-weight: 700;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+        
+        .score.high {
+            background: rgba(255, 68, 68, 0.1);
+            color: var(--color-danger);
+        }
+        
+        .score.medium {
+            background: rgba(255, 193, 7, 0.1);
+            color: var(--color-warning);
+        }
+        
+        .score.low {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--color-success);
+        }
+        
+        .reason {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .summary {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+        }
+        
+        .risk-score, .image-analysis {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+        
+        .risk {
+            font-weight: 700;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+        
+        .risk.high-risk {
+            background: rgba(255, 68, 68, 0.1);
+            color: var(--color-danger);
+        }
+        
+        .risk.medium-risk {
+            background: rgba(255, 193, 7, 0.1);
+            color: var(--color-warning);
+        }
+        
+        .risk.low-risk {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--color-success);
+        }
+        
+        .tag {
+            font-size: 0.85rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        .tag.normal {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--color-success);
+        }
+        
+        .tag.extremist {
+            background: rgba(255, 68, 68, 0.1);
+            color: var(--color-danger);
+        }
+        
+        .tag.spam {
+            background: rgba(255, 193, 7, 0.1);
+            color: var(--color-warning);
+        }
+        
+        .tag.violent, .tag.hate {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+        
+        .conclusion {
+            margin-top: 1rem;
+        }
+        
+        .conclusion strong {
+            color: #212529;
+        }
+        
+        .detailed-reason {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 0.5rem;
+            line-height: 1.5;
+        }
+        
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            text-align: center;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(0, 149, 246, 0.2);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .analysis-error {
+            background: rgba(255, 68, 68, 0.1);
+            color: var(--color-danger);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 1rem;
+        }
+        
+        @media (max-width: 600px) {
+            .profile-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <div class="header-title">
+                    <h1>Instagram Profile Scanner</h1>
+                    <p>Analyze profiles for authenticity and risk factors</p>
+                </div>
+                <div class="header-buttons">
+                    <a href="/dashboard/" class="btn">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                    <a href="/accounts/logout/" class="btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <form id="searchForm">
+            {% csrf_token %}
+            <div class="search-container">
+                <input type="text" name="username" id="usernameInput" 
+                       placeholder="Enter Instagram username" required>
+                <button type="submit">Analyze</button>
+            </div>
+        </form>
+        
+        <div id="error"></div>
+        
+        <div id="results">
+            <!-- Results will be inserted here -->
+            <div class="loading-container" style="display: none;">
+                <div class="loading-spinner"></div>
+                <p>Analyzing profile...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Clear previous results and errors
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('error').textContent = '';
+            
+            const username = document.getElementById('usernameInput').value.trim();
+            if (!username) {
+                showError('Please enter a username');
+                return;
+            }
+            
+            // Show loading state
+            document.getElementById('results').innerHTML = `
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p>Analyzing @${username}...</p>
+                </div>
+            `;
+            
+            // Make the API request
+            fetch('/profile-checker/wholeinsta_fetch/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({ username: username })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.error || 'Request failed');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                renderProfileResults(data);
+            })
+            .catch(error => {
+                showError(error.message);
+                document.getElementById('results').innerHTML = '';
+            });
+        });
+        
+        function showError(message) {
+            const errorEl = document.getElementById('error');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+        
+        function renderProfileResults(data) {
+            if (!data || !data.profile) {
+                showError('No profile data received');
+                return;
+            }
+            
+            const profile = data.profile;
+            let html = `
+                <div class="profile">
+                    <img src="${profile.profile_pic_url}" 
+                         class="profile-pic" 
+                         alt="Profile picture"
+                         onerror="this.src='/static/default_placeholder.jpg'">
+                    
+                    <div class="profile-name">
+                        <h2>@${profile.username}</h2>
+                        <p>${profile.full_name || ''}</p>
+                    </div>
+                    
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">${profile.follower_count || 0}</div>
+                            <div>Followers</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${profile.following_count || 0}</div>
+                            <div>Following</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${profile.media_count || 0}</div>
+                            <div>Posts</div>
+                        </div>
+                    </div>
+                    
+                    <div class="bio">
+                        <strong>Bio:</strong><br>
+                        ${profile.biography || 'No bio available'}
+                    </div>
+            `;
+            
+            // Add analysis if available
+            if (data.analysis_html) {
+                html += data.analysis_html;
+            } else {
+                html += `
+                    <div class="analysis-error">
+                        <p>⚠️ AI analysis failed. Please try again.</p>
+                    </div>
+                `;
+            }
+            
+            html += `</div>`; // Close profile div
+            document.getElementById('results').innerHTML = html;
+        }
+    </script>
+</body>
+</html>

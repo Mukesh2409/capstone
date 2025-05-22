@@ -1,0 +1,70 @@
+{% extends 'accounts/base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Your Scan History</h4>
+                    <a href="{% url 'export_scan_history_csv' %}" class="btn btn-success">Download CSV</a>
+                </div>
+                <div class="card-body">
+                    {% if scans %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Username</th>
+                                    <th>Followers</th>
+                                    <th>Following</th>
+                                    <th>Posts</th>
+                                    <th>Result</th>
+                                    <th>Algorithm</th>
+                                    <th>Confidence</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for scan in scans %}
+                                <tr>
+                                    <td>{{ scan.scan_date|date:"M d, Y" }}</td>
+                                    <td>@{{ scan.username }}</td>
+                                    <td>{{ scan.followers_count }}</td>
+                                    <td>{{ scan.following_count }}</td>
+                                    <td>{{ scan.posts_count }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if scan.scan_result == 'FAKE' %}danger{% else %}success{% endif %}">
+                                            {{ scan.get_scan_result_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ scan.algorithm_used }}</td>
+                                    <td>{{ scan.confidence|floatformat:2 }}</td>
+                                    <td>
+                                        <form method="post" action="{% url 'delete_scan' scan.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this scan?')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <h5>No scans yet!</h5>
+                        <p>Start by scanning your first profile.</p>
+                        <a href="{% url 'scan_profile' %}" class="btn btn-primary">Scan Profile</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{# Removed the old download button from the bottom #}
+{% endblock %}
